@@ -29,6 +29,8 @@
 #define KEY_CAPABILITIES 1     // uint32, bitfield of CAP_* below
 #define KEY_GRAPH_HOURS 2      // uint8, widest graph window this face can show, in hours; 0 = no graph
 
+// #define KEY_GRAPH_BITMAP_SIZE 3  // RESERVED — sender-rendered bitmap geometry, unspecified
+
 // ---------------------------------------------------------------------------
 // Sender -> watch: current reading
 // ---------------------------------------------------------------------------
@@ -52,6 +54,8 @@
 #define KEY_GRAPH_HIGH_LINE 18 // uint8, high target line, mg/dL / 2 (90 = 180 mg/dL = 10.0 mmol/L)
 #define KEY_GRAPH_LOW_LINE 19  // uint8, low target line, mg/dL / 2 (36 = 72 mg/dL = 4.0 mmol/L)
 
+// #define KEY_GRAPH_BITMAP 20  // RESERVED — sender-rendered bitmap, chunked, unspecified
+
 // ---------------------------------------------------------------------------
 // Capability bits, for KEY_CAPABILITIES
 //
@@ -64,6 +68,7 @@
 #define CAP_IOB (1 << 3)
 #define CAP_STATUS (1 << 4)
 #define CAP_SENDER_BATTERY (1 << 5)
+// #define CAP_GRAPH_BITMAP (1 << 6)  // RESERVED — may not be needed, see spec
 
 // ---------------------------------------------------------------------------
 // Trend arrow indices, for KEY_TREND_ARROW

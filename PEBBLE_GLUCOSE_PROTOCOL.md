@@ -39,6 +39,33 @@ Each watchface has a UUID, which the sender must target. To support arbitrary wa
 | 18 | GRAPH_HIGH_LINE | uint8 | High target line, **mg/dL ÷ 2** (e.g. 90 = 180 mg/dL = 10.0 mmol/L). |
 | 19 | GRAPH_LOW_LINE | uint8 | Low target line, **mg/dL ÷ 2** (e.g. 36 = 72 mg/dL = 4.0 mmol/L). |
 
+## Reserved: sender-rendered graph bitmap
+
+A watchface can also ask for the graph as a **pre-rendered bitmap** instead of raw points, letting the
+sender own the styling and keeping watch-side drawing to a blit. This is how xDrip has sent the Pebble
+trend graph for over a decade, and it is a first-class option here, not a legacy fallback — the
+trade-offs run both ways (see [Notes](#notes-for-implementations)).
+
+These slots are **reserved and deliberately unspecified**. The design belongs with the people who have
+run this path in the field:
+
+| Slot | Direction | Purpose |
+|------|-----------|---------|
+| announce key 3 | watch → sender | Bitmap geometry the watchface wants |
+| data key 20 | sender → watch | The encoded bitmap (chunked) |
+| capability bit 6 (`0x40`) | — | Held in case gating needs a bit; may not be needed, see below |
+
+Starting point for the geometry key, from [xDrip PR #4659](https://github.com/NightscoutFoundation/xDrip/pull/4659):
+a uint16 packing height in the low byte and width in the high byte.
+
+**Open question — how the two graph modes are selected.** Raw points are already gated by
+`GRAPH_HOURS` rather than a capability bit. The consistent extension is for `GRAPH_HOURS` to keep
+meaning "the window I want" and the *presence* of the geometry key to mean "send that window as a
+bitmap" — no capability bit required. The alternative is an explicit bit 6. Undecided.
+
+Also open: whether bitmap **styling** (dots vs line, dot size, target lines) stays a sender-side
+setting, as in xDrip today, or moves into the announce alongside geometry.
+
 ## Capability bits (CAPABILITIES, uint32)
 
 | Bit | Mask | Field |
@@ -49,6 +76,7 @@ Each watchface has a UUID, which the sender must target. To support arbitrary wa
 | 3 | `0x08` | IOB |
 | 4 | `0x10` | Status line |
 | 5 | `0x20` | Sender battery |
+| 6 | `0x40` | *Reserved — see [sender-rendered bitmap](#reserved-sender-rendered-graph-bitmap)* |
 
 ## Key stability
 
