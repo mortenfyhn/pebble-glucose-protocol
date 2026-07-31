@@ -50,6 +50,15 @@ Each watchface has a UUID, which the sender must target. To support arbitrary wa
 | 4 | `0x10` | Status line |
 | 5 | `0x20` | Sender battery |
 
+## Key stability
+
+Key numbers and capability bits are **frozen once published**. New fields take new numbers; existing
+ones never change meaning or type. `PROTOCOL_VERSION` bumps only for a break, which should be a last
+resort — senders and watchfaces update independently and cannot be released together.
+
+This is what makes it safe to copy `protocol.h` into a project rather than depend on this repo: a copy
+can fall behind, but it cannot silently disagree.
+
 ## Trend arrow indices
 
 | Index | Meaning |
@@ -90,12 +99,20 @@ Sender:
 
 Watchface:
 
+- **Use the raw integer keys directly** — don't declare `messageKeys` in `package.json`. The SDK's
+  named-key mechanism assigns numbers automatically, which cannot work for a protocol whose numbers are
+  fixed across independently-released apps. `dict_find(iter, KEY_BG_STRING)` against the literal number
+  is all you need; the reference watchface ships no `messageKeys` block at all.
 - Decide staleness on the watchface side, not the sender: pick a threshold and show a clear "no data" state once the last `BG_TIMESTAMP` is older than it, so a frozen value can't look live.
 - Treat each field as latest-wins and keep the last value for fields not in a given message. Persist across relaunch so returning from the menu isn't blank.
 
-## Reference implementations
+## Implementations
 
-- **Watchface:** `pebble-glucose-watchface` (this repo; keys in `src/c/protocol.h`). Implements a subset:
-  BG + timestamp, IOB, status, graph. Not delta, trend arrow, or phone battery.
-- **Sender:** the MiniMed→Pebble bridge `minimed-pebble-bridge` (keys in `Protocol.kt`). Sends BG,
+- **Watchface:** [`pebble-glucose-watchface`](https://github.com/mortenfyhn/pebble-glucose-watchface)
+  (keys in `src/c/protocol.h`). Implements a subset: BG + timestamp, IOB, status, graph. Not delta,
+  trend arrow, or sender battery.
+- **Sender:** the MiniMed→Pebble bridge, reading a MiniMed 780G pump directly over BLE. Sends BG,
   timestamp, IOB, status, graph.
+- **Sender:** a modified PebbleOS reading the pump directly from the watch's own firmware, with no phone
+  in between. It builds the same AppMessage dictionaries with the same keys, delivered in-process to the
+  watchface. Useful mainly as evidence that the field set doesn't assume a phone.
