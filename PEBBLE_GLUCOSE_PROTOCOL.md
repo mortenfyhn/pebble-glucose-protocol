@@ -1,146 +1,91 @@
-# Pebble Glucose Protocol v1 (draft)
+# Pebble Glucose Protocol
 
-A small protocol for pushing glucose data to a Pebble watchface over [AppMessage](https://developer.rebble.io/). It decouples the watchface from the data source. The watchface announces which data it can display, and the sender pushes only those.
+**Draft of Version 1**
 
-- Sender: Anything with glucose data and a Pebble link, could be xDrip, a custom app, or something else.
+This is a suggested protocol for sending glucose/CGM data to a Pebble watchface over [AppMessage](https://developer.rebble.io/). It decouples the watchface from the data source.
+
+- Sender: Anything with glucose data and a Pebble link (xDrip, a custom app, or something else).
 - Watchface: Any Pebble watchface implementing this protocol.
 
 Each watchface has a UUID, which the sender must target. To support arbitrary watchfaces the sender must let the user set the watchface UUID.
 
 ## Communication flow
 
-1. On launch, and again on every Bluetooth reconnect, the watchface sends a capability
-   announcement (`PROTOCOL_VERSION`, `CAPABILITIES`, and optionally `GRAPH_HOURS`).
-2. The sender records the request and immediately pushes the latest values for the requested fields.
-3. The sender pushes an update whenever it has new data.
+1. On launch and reconnect, the watchface sends a capability announcement
+2. The sender stores the capabilities and responds with the corresponding data
+3. The sender sends new data when it has any.
 4. The watchface can re-send its announcement any time to request a full refresh.
 
-## Message keys: watchface → sender (capability announcement)
+## Message keys: Watchface → sender (capability announcement)
 
-| Key | Name | Type | Description |
-|----|------|------|-------------|
-| 0 | PROTOCOL_VERSION | uint8 | Protocol version. 1 = v1. |
-| 1 | CAPABILITIES | uint32 | Capability bitfield, see below. |
-| 2 | GRAPH_HOURS | uint8 | Widest graph window the watchface can show, in hours. 0 = no graph. The sender picks the actual window (up to this, e.g. from its own setting) and sends it back on key 2 alongside the graph data; see sender → watchface. |
+| Key | Name              | Type   | Description |
+|-----|-------------------|--------|-------------|
+| 0   | PROTOCOL_VERSION  | uint8  | Protocol version (increment for breaking changes) |
+| 1   | CAPABILITIES      | uint32 | Watchface capability bitfield, see below |
+| 2   | GRAPH_HOURS       | uint8  | Hours of graph history, set 0 to disable |
+| 3   | GRAPH_BITMAP_SIZE |        | *Reserved for pre-rendered bitmap graph* |
+| 4-9 |                   |        | *Reserved for future watchface -> sender keys* |
 
-## Message keys: sender → watchface (data)
+## Message keys: Sender → watchface (data)
 
-| Key | Name | Type | Description |
-|----|------|------|-------------|
-| 10 | BG_TIMESTAMP | uint32 | BG reading timestamp, as Unix epoch seconds. |
-| 11 | BG_STRING | string | Formatted BG data in the sender's units, e.g. `"7.5"` or `"135"` |
-| 12 | DELTA_STRING | string | Formatted BG change from previous reading, e.g. `"+0.3"`. |
-| 13 | TREND_ARROW | uint8 | Trend arrow index, see below. |
-| 14 | IOB_STRING | string | Formatted insulin-on-board, e.g. `"2.5"`. |
-| 15 | STATUS_STRING | string | Any sensor/pump status text, e.g. `"SUSPENDED"`, `"NO SIGNAL"`, etc. The sender may also set it to `"BG"` to indicate the current `BG_STRING` is a manually-entered fingerstick shown in place of sensor glucose (no separate marker key — the watchface just renders the text). |
-| 16 | SENDER_BATTERY | uint8 | Sender battery level, 0–100. |
-| 2 | GRAPH_HOURS | uint8 | Active graph window, in hours (≤ the watchface's announced max). The watchface uses this as its time axis directly, so the window follows the sender's setting immediately and the trace fills in as data arrives — rather than the watchface inferring the span from the data it happens to hold. |
-| 17 | GRAPH_DATA | bytes | Recent BG history for the graph (see format below). |
-| 18 | GRAPH_HIGH_LINE | uint8 | High target line, **mg/dL ÷ 2** (e.g. 90 = 180 mg/dL = 10.0 mmol/L). |
-| 19 | GRAPH_LOW_LINE | uint8 | Low target line, **mg/dL ÷ 2** (e.g. 36 = 72 mg/dL = 4.0 mmol/L). |
+| Key | Name            | Type   | Description |
+|-----|-----------------|--------|-------------|
+| 10  | BG_TIMESTAMP    | uint32 | BG reading timestamp (Unix epoch seconds) |
+| 11  | BG_STRING       | string | Formatted BG value in sender's units (e.g. "5.7" or "103") |
+| 12  | DELTA_STRING    | string | Formatted BG delta (e.g. "-0.3" or "-5.6") |
+| 13  | TREND_ARROW     | uint8  | Trend arrow index (see below) |
+| 14  | IOB_STRING      | string | Formatted insulin-on-board (e.g. "2.5") |
+| 15  | STATUS_STRING   | string | Any sensor/pump status text (e.g. "PUMP SUSPENDED") |
+| 16  | SENDER_BATTERY  | uint8  | Sender battery level (0–100) |
+| 17  | GRAPH_DATA      | bytes  | Raw graph data, see below |
+| 18  | GRAPH_HIGH_LINE | uint8  | High BG threshold (mg/dL / 2) |
+| 19  | GRAPH_LOW_LINE  | uint8  | Low BG threshold (mg/dL / 2) |
+| 20  | GRAPH_BITMAP    | bytes  | *Reserved for pre-rendered bitmap graph* |
 
-## Reserved: sender-rendered graph bitmap
+## Capability bits
 
-A watchface can also ask for the graph as a **pre-rendered bitmap** instead of raw points, letting the
-sender own the styling and keeping watch-side drawing to a blit. This is how xDrip has sent the Pebble
-trend graph for over a decade, and it is a first-class option here, not a legacy fallback — the
-trade-offs run both ways (see [Notes](#notes-for-implementations)).
-
-These slots are **reserved and deliberately unspecified**. The design belongs with the people who have
-run this path in the field:
-
-| Slot | Direction | Purpose |
-|------|-----------|---------|
-| announce key 3 | watch → sender | Bitmap geometry the watchface wants |
-| data key 20 | sender → watch | The encoded bitmap (chunked) |
-| capability bit 6 (`0x40`) | — | Held in case gating needs a bit; may not be needed, see below |
-
-Starting point for the geometry key, from [xDrip PR #4659](https://github.com/NightscoutFoundation/xDrip/pull/4659):
-a uint16 packing height in the low byte and width in the high byte.
-
-**Open question — how the two graph modes are selected.** Raw points are already gated by
-`GRAPH_HOURS` rather than a capability bit. The consistent extension is for `GRAPH_HOURS` to keep
-meaning "the window I want" and the *presence* of the geometry key to mean "send that window as a
-bitmap" — no capability bit required. The alternative is an explicit bit 6. Undecided.
-
-Also open: whether bitmap **styling** (dots vs line, dot size, target lines) stays a sender-side
-setting, as in xDrip today, or moves into the announce alongside geometry.
-
-## Capability bits (CAPABILITIES, uint32)
-
-| Bit | Mask | Field |
-|----|------|-------|
-| 0 | `0x01` | BG value + timestamp |
-| 1 | `0x02` | Trend arrow |
-| 2 | `0x04` | Delta |
-| 3 | `0x08` | IOB |
-| 4 | `0x10` | Status line |
-| 5 | `0x20` | Sender battery |
-| 6 | `0x40` | *Reserved — see [sender-rendered bitmap](#reserved-sender-rendered-graph-bitmap)* |
-
-## Key stability
-
-Key numbers and capability bits are **frozen once published**. New fields take new numbers; existing
-ones never change meaning or type. `PROTOCOL_VERSION` bumps only for a break, which should be a last
-resort — senders and watchfaces update independently and cannot be released together.
-
-This is what makes it safe to copy `protocol.h` into a project rather than depend on this repo: a copy
-can fall behind, but it cannot silently disagree.
+| Bit | Mask   | Description |
+|-----|--------|-------------|
+| 0   | `0x01` | Timestamped BG value |
+| 1   | `0x02` | Trend arrow |
+| 2   | `0x04` | Delta |
+| 3   | `0x08` | IOB |
+| 4   | `0x10` | Status line |
+| 5   | `0x20` | Sender battery |
 
 ## Trend arrow indices
 
-| Index | Meaning |
-|-------|---------|
-| 0 | Unknown |
-| 1 | Flat |
-| 2 | Slant up |
-| 3 | Slant down |
-| 4 | Up |
-| 5 | Down |
-| 6 | Double up |
-| 7 | Double down |
-| 8 | Triple up |
-| 9 | Triple down |
+| Index | Description |
+|-------|-------------|
+| 0     | Unknown     |
+| 1     | Flat        |
+| 2     | Slant up    |
+| 3     | Slant down  |
+| 4     | Up          |
+| 5     | Down        |
+| 6     | Double up   |
+| 7     | Double down |
+| 8     | Triple up   |
+| 9     | Triple down |
 
 ## Graph data format
 
 Little-endian. `bg_values` are **mg/dL ÷ 2**, which fits 0–510 mg/dL (0–28 mmol/L) at 2 mg/dL
 (≈0.1 mmol/L) resolution in one byte.
 
-| Bytes | Field | Type | Description | Unit |
-|-------|-------|------|-------------|------|
-| 4 | ref_timestamp | uint32 | Unix epoch time of the reference (oldest) point | seconds |
-| 2 | count | uint16 | Number of points, N | |
-| 2N | offsets | uint16[N] | Time of each point since `ref_timestamp` | minutes |
-| N | bg_values | uint8[N] | BG of each point | mg/dL ÷ 2 |
+| Bytes | Field         | Type      | Description                                     | Unit |
+|-------|---------------|-----------|-------------------------------------------------|------|
+| 4     | ref_timestamp | uint32    | Unix epoch time of the reference (oldest) point | seconds |
+| 2     | count         | uint16    | Number of points, N                             | |
+| 2N    | offsets       | uint16[N] | Time of each point since `ref_timestamp`        | minutes |
+| N     | bg_values     | uint8[N]  | BG of each point                                | mg/dL ÷ 2 |
 
 Total size: `6 + 3N` bytes (3 hours at 5 min intervals → 114 bytes).
 
-## Notes for implementations
+## Notes
 
-Sender:
-
-- `BG_TIMESTAMP` should be the reading's measurement time, and should advance on each new reading even when the value is unchanged. A CGM "current value" read carries no time, so key it off a real new-reading signal, not off the value changing — otherwise a flat run of identical readings looks stale on the watch.
-- Push updates as new data arrives if you can. Polling is fine if that's all the source allows.
-- You can send a full snapshot or just the fields that changed; the watchface keeps the last value for any field not in a message. Send large fields like `GRAPH_DATA` only when they actually change.
-- Respond to a capability announcement with an immediate push even if nothing changed, so a just-launched watchface fills in without waiting for the next reading.
-
-Watchface:
-
-- **Use the raw integer keys directly** — don't declare `messageKeys` in `package.json`. The SDK's
-  named-key mechanism assigns numbers automatically, which cannot work for a protocol whose numbers are
-  fixed across independently-released apps. `dict_find(iter, KEY_BG_STRING)` against the literal number
-  is all you need; the reference watchface ships no `messageKeys` block at all.
-- Decide staleness on the watchface side, not the sender: pick a threshold and show a clear "no data" state once the last `BG_TIMESTAMP` is older than it, so a frozen value can't look live.
-- Treat each field as latest-wins and keep the last value for fields not in a given message. Persist across relaunch so returning from the menu isn't blank.
-
-## Implementations
-
-- **Watchface:** [`pebble-glucose-watchface`](https://github.com/mortenfyhn/pebble-glucose-watchface)
-  (keys in `src/c/protocol.h`). Implements a subset: BG + timestamp, IOB, status, graph. Not delta,
-  trend arrow, or sender battery.
-- **Sender:** the MiniMed→Pebble bridge, reading a MiniMed 780G pump directly over BLE. Sends BG,
-  timestamp, IOB, status, graph.
-- **Sender:** a modified PebbleOS reading the pump directly from the watch's own firmware, with no phone
-  in between. It builds the same AppMessage dictionaries with the same keys, delivered in-process to the
-  watchface. Useful mainly as evidence that the field set doesn't assume a phone.
+* Use raw integer keys in watchfaces, don't declare messageKeys in package.json
+* BG timestamp must advance on new BG readings even if the BG is the same
+* Watchfaces with a BG graph can choose between a pre-rendered bitmap/PNG and sending raw data for the watch to render
+* Use Clay or equivalent if your watchface needs user config
+* See e.g. [this](https://github.com/mortenfyhn/pebble-glucose-watchface) for an example watchface implementation
