@@ -22,4 +22,4 @@ Example watchface:
 
 ## License
 
-[Zero-Clause BSD](https://opensource.org/license/0bsd): You can do anything you want, no attribution needed.
+[Zero-Clause BSD](https://opensource.org/license/0bsd): You can do anything you want, and you don't have to credit anyone.
