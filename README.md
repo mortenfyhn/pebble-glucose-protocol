@@ -32,3 +32,7 @@ numbers, one byte per graph point — so this is not trying to be a general watc
 
 It is not tied to any particular data source. xDrip, a pump read directly over BLE, or the watch's own
 firmware are all just senders.
+
+## License
+
+[Zero-Clause BSD](https://opensource.org/license/0bsd): You can do anything you want, no attribution needed.
