@@ -7,7 +7,9 @@ sources (such as xDrip) can be developed independently.
 
 ## Using it
 
-Copy [`protocol.h`](protocol.h) into your project.
+Copy any of these into your project:
+* [`protocol.h`](protocol.h) for C projects
+* [`Protocol.kt`](Protocol.kt) for Kotlin projects
 
 ## Status
 

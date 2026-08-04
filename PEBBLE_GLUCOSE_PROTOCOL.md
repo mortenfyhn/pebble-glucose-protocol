@@ -26,6 +26,8 @@ Each watchface has a UUID, which the sender must target. To support arbitrary wa
 | 3   | GRAPH_BITMAP_SIZE |        | *Reserved for pre-rendered bitmap graph* |
 | 4-9 |                   |        | *Reserved for future watchface -> sender keys* |
 
+Watchfaces can re-send the announcement any time to request a full update from the sender.
+
 ## Message keys: Sender → watchface (data)
 
 | Key | Name            | Type   | Description |
@@ -70,15 +72,20 @@ Each watchface has a UUID, which the sender must target. To support arbitrary wa
 
 ## Graph data format
 
+Graph data can cover a single new point, the full GRAPH_HOURS history, or anything in
+between. Watchfaces merge incoming data into their graph data buffer based on
+timestamps. The buffer should persist when you exit/launch the watchface, so you don't
+lose the graph.
+
+| Bytes | Field         | Type      | Description                                     | Unit      |
+|-------|---------------|-----------|-------------------------------------------------|-----------|
+| 4     | ref_timestamp | uint32    | Unix epoch time of the reference (oldest) point | seconds   |
+| 2     | count         | uint16    | Number of points, N                             |           |
+| 2N    | offsets       | uint16[N] | Time of each point since `ref_timestamp`        | minutes   |
+| N     | bg_values     | uint8[N]  | BG of each point                                | mg/dL / 2 |
+
 Little-endian. `bg_values` are **mg/dL ÷ 2**, which fits 0–510 mg/dL (0–28 mmol/L) at 2 mg/dL
 (≈0.1 mmol/L) resolution in one byte.
-
-| Bytes | Field         | Type      | Description                                     | Unit |
-|-------|---------------|-----------|-------------------------------------------------|------|
-| 4     | ref_timestamp | uint32    | Unix epoch time of the reference (oldest) point | seconds |
-| 2     | count         | uint16    | Number of points, N                             | |
-| 2N    | offsets       | uint16[N] | Time of each point since `ref_timestamp`        | minutes |
-| N     | bg_values     | uint8[N]  | BG of each point                                | mg/dL ÷ 2 |
 
 Total size: `6 + 3N` bytes (3 hours at 5 min intervals → 114 bytes).
 
