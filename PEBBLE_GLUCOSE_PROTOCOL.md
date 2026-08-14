@@ -16,7 +16,7 @@ Each watchface has a UUID, which the sender must target. To support arbitrary wa
 3. The sender sends new data when it has any.
 4. The watchface can re-send its announcement any time to request a full refresh.
 
-## Message keys: Watchface → sender (capability announcement)
+## Message keys: Capability announcement (watchface 🡒 sender)
 
 | Key | Name              | Type   | Description |
 |-----|-------------------|--------|-------------|
@@ -28,23 +28,7 @@ Each watchface has a UUID, which the sender must target. To support arbitrary wa
 
 Watchfaces can re-send the announcement any time to request a full update from the sender.
 
-## Message keys: Sender → watchface (data)
-
-| Key | Name            | Type   | Description |
-|-----|-----------------|--------|-------------|
-| 10  | BG_TIMESTAMP    | uint32 | BG reading timestamp (Unix epoch seconds) |
-| 11  | BG_STRING       | string | Formatted BG value in sender's units (e.g. "5.7" or "103") |
-| 12  | DELTA_STRING    | string | Formatted BG delta (e.g. "-0.3" or "-5.6") |
-| 13  | TREND_ARROW     | uint8  | Trend arrow index (see below) |
-| 14  | IOB_STRING      | string | Formatted insulin-on-board (e.g. "2.5") |
-| 15  | STATUS_STRING   | string | Any sensor/pump status text (e.g. "PUMP SUSPENDED") |
-| 16  | SENDER_BATTERY  | uint8  | Sender battery level (0–100) |
-| 17  | GRAPH_DATA      | bytes  | Raw graph data, see below |
-| 18  | GRAPH_HIGH_LINE | uint8  | High BG threshold (mg/dL / 2) |
-| 19  | GRAPH_LOW_LINE  | uint8  | Low BG threshold (mg/dL / 2) |
-| 20  | GRAPH_BITMAP    | bytes  | *Reserved for pre-rendered bitmap graph* |
-
-## Capability bits
+Capability bits:
 
 | Bit | Mask   | Description |
 |-----|--------|-------------|
@@ -55,7 +39,19 @@ Watchfaces can re-send the announcement any time to request a full update from t
 | 4   | `0x10` | Status line |
 | 5   | `0x20` | Sender battery |
 
-## Trend arrow indices
+## Message keys: Main data (sender 🡒 watchface)
+
+| Key | Name            | Type   | Description |
+|-----|-----------------|--------|-------------|
+| 10  | BG_TIMESTAMP    | uint32 | BG reading timestamp (Unix epoch seconds) |
+| 11  | BG_STRING       | string | Formatted BG value in sender's units (e.g. "5.7" or "103") |
+| 12  | DELTA_STRING    | string | Formatted BG delta (e.g. "-0.3" or "-5.6") |
+| 13  | TREND_ARROW     | uint8  | Trend arrow index (see below) |
+| 14  | IOB_STRING      | string | Formatted insulin-on-board (e.g. "2.5") |
+| 15  | STATUS_STRING   | string | Any sensor/pump status text (e.g. "PUMP SUSPENDED") |
+| 16  | SENDER_BATTERY  | uint8  | Sender battery level (0–100) |
+
+Trend arrow indices:
 
 | Index | Description |
 |-------|-------------|
@@ -70,7 +66,19 @@ Watchfaces can re-send the announcement any time to request a full update from t
 | 8     | Triple up   |
 | 9     | Triple down |
 
-## Graph data format
+## Message keys: Bitmap graph (sender 🡒 watchface)
+
+| Key | Name            | Type   | Description |
+|-----|-----------------|--------|-------------|
+| 30  | GRAPH_BITMAP    | bytes  | *Reserved for bitmap graph data* |
+
+## Message keys: Raw graph (sender 🡒 watchface)
+
+| Key | Name            | Type   | Description |
+|-----|-----------------|--------|-------------|
+| 40  | GRAPH_DATA      | bytes  | Raw graph data, see below |
+| 41  | GRAPH_HIGH_LINE | uint8  | High BG threshold (mg/dL / 2) |
+| 42  | GRAPH_LOW_LINE  | uint8  | Low BG threshold (mg/dL / 2) |
 
 Graph data can cover a single new point, the full GRAPH_HOURS history, or anything in
 between. Watchfaces merge incoming data into their graph data buffer based on
@@ -89,10 +97,10 @@ Little-endian. `bg_values` are **mg/dL ÷ 2**, which fits 0–510 mg/dL (0–28 
 
 Total size: `6 + 3N` bytes (3 hours at 5 min intervals → 114 bytes).
 
-## Notes
+## Implementation notes
 
 * Use raw integer keys in watchfaces, don't declare messageKeys in package.json
-* BG timestamp must advance on new BG readings even if the BG is the same
-* Watchfaces with a BG graph can choose between a pre-rendered bitmap/PNG and sending raw data for the watch to render
+* BG timestamp should advance on new BG readings even if the BG is the same
+* Watchfaces with a BG graph can use ether a pre-rendered bitmap, or receive raw data to render itself
 * Use Clay or equivalent if your watchface needs user config
 * See e.g. [this](https://github.com/mortenfyhn/pebble-glucose-watchface) for an example watchface implementation
