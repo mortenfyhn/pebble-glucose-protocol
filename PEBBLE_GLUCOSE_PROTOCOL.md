@@ -24,7 +24,7 @@ Each watchface has a UUID, which the sender must target. To support arbitrary wa
 | 1   | CAPABILITIES      | uint32 | Watchface capability bitfield, see below |
 | 2   | GRAPH_HOURS       | uint8  | Hours of graph history, set 0 to disable |
 | 3   | GRAPH_BITMAP_SIZE |        | *Reserved for pre-rendered bitmap graph* |
-| 4-9 |                   |        | *Reserved for future watchface -> sender keys* |
+| 4-9 |                   |        | *Reserved* |
 
 Watchfaces can re-send the announcement any time to request a full update from the sender.
 
@@ -41,15 +41,16 @@ Capability bits:
 
 ## Message keys: Main data (sender 🡒 watchface)
 
-| Key | Name            | Type   | Description |
-|-----|-----------------|--------|-------------|
-| 10  | BG_TIMESTAMP    | uint32 | BG reading timestamp (Unix epoch seconds) |
-| 11  | BG_STRING       | string | Formatted BG value in sender's units (e.g. "5.7" or "103") |
-| 12  | DELTA_STRING    | string | Formatted BG delta (e.g. "-0.3" or "-5.6") |
-| 13  | TREND_ARROW     | uint8  | Trend arrow index (see below) |
-| 14  | IOB_STRING      | string | Formatted insulin-on-board (e.g. "2.5") |
-| 15  | STATUS_STRING   | string | Any sensor/pump status text (e.g. "PUMP SUSPENDED") |
-| 16  | SENDER_BATTERY  | uint8  | Sender battery level (0–100) |
+| Key   | Name            | Type   | Description |
+|-------|-----------------|--------|-------------|
+| 10    | BG_TIMESTAMP    | uint32 | BG reading timestamp (Unix epoch seconds) |
+| 11    | BG_STRING       | string | Formatted BG value in sender's units (e.g. "5.7" or "103") |
+| 12    | DELTA_STRING    | string | Formatted BG delta (e.g. "-0.3" or "-5.6") |
+| 13    | TREND_ARROW     | uint8  | Trend arrow index (see below) |
+| 14    | IOB_STRING      | string | Formatted insulin-on-board (e.g. "2.5") |
+| 15    | STATUS_STRING   | string | Any sensor/pump status text (e.g. "PUMP SUSPENDED") |
+| 16    | SENDER_BATTERY  | uint8  | Sender battery level (0–100) |
+| 17-29 |                 |        | *Reserved* |
 
 Trend arrow indices:
 
@@ -68,17 +69,19 @@ Trend arrow indices:
 
 ## Message keys: Bitmap graph (sender 🡒 watchface)
 
-| Key | Name            | Type   | Description |
-|-----|-----------------|--------|-------------|
-| 30  | GRAPH_BITMAP    | bytes  | *Reserved for bitmap graph data* |
+| Key   | Name            | Type   | Description |
+|-------|-----------------|--------|-------------|
+| 30    | GRAPH_BITMAP    | bytes  | *Reserved for bitmap graph data* |
+| 31-39 |                 |        | *Reserved* |
 
 ## Message keys: Raw graph (sender 🡒 watchface)
 
-| Key | Name            | Type   | Description |
-|-----|-----------------|--------|-------------|
-| 40  | GRAPH_DATA      | bytes  | Raw graph data, see below |
-| 41  | GRAPH_HIGH_LINE | uint8  | High BG threshold (mg/dL / 2) |
-| 42  | GRAPH_LOW_LINE  | uint8  | Low BG threshold (mg/dL / 2) |
+| Key   | Name            | Type   | Description |
+|-------|-----------------|--------|-------------|
+| 40    | GRAPH_DATA      | bytes  | Raw graph data, see below |
+| 41    | GRAPH_HIGH_LINE | uint8  | High BG threshold (mg/dL / 2) |
+| 42    | GRAPH_LOW_LINE  | uint8  | Low BG threshold (mg/dL / 2) |
+| 43-49 |                 |        | *Reserved* |
 
 Graph data can cover a single new point, the full GRAPH_HOURS history, or anything in
 between. Watchfaces merge incoming data into their graph data buffer based on
