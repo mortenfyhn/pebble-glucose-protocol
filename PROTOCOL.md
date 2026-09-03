@@ -2,19 +2,19 @@
 
 **Draft of Version 1**
 
-This is a suggested protocol for sending glucose/CGM data to a Pebble watchface over [AppMessage](https://developer.rebble.io/). It decouples the watchface from the data source.
+This is a protocol for sending glucose/CGM data to a Pebble watchface over [AppMessages](https://developer.repebble.com/docs/c/Foundation/AppMessage/).
 
-- Sender: Anything with glucose data and a Pebble link (xDrip, a custom app, or something else).
+- Sender: Anything with glucose data and a Pebble connection (xDrip, a custom app, or something else).
 - Watchface: Any Pebble watchface implementing this protocol.
 
 Each watchface has a UUID, which the sender must target. To support arbitrary watchfaces the sender must let the user set the watchface UUID.
 
 ## Communication flow
 
-1. On launch and reconnect, the watchface sends a capability announcement
-2. The sender stores the capabilities and responds with the corresponding data
-3. The sender sends new data when it has any.
-4. The watchface can re-send its announcement any time to request a full refresh.
+1. On launch and reconnect, the watchface sends a capability announcement.
+1. The sender stores the capabilities and responds with the corresponding data.
+1. The sender sends new data when it has any.
+1. The watchface can re-send its announcement any time to request a full refresh.
 
 ## Message keys: Capability announcement (watchface 🡒 sender)
 
@@ -23,8 +23,7 @@ Each watchface has a UUID, which the sender must target. To support arbitrary wa
 | 0   | PROTOCOL_VERSION  | uint8  | Protocol version (increment for breaking changes) |
 | 1   | CAPABILITIES      | uint32 | Watchface capability bitfield, see below |
 | 2   | GRAPH_HOURS       | uint8  | Hours of graph history, set 0 to disable |
-| 3   | GRAPH_BITMAP_SIZE |        | *Reserved for pre-rendered bitmap graph* |
-| 4-9 |                   |        | *Reserved* |
+| 3-9 |                   |        | *Reserved* |
 
 Watchfaces can re-send the announcement any time to request a full update from the sender.
 
@@ -67,21 +66,14 @@ Trend arrow indices:
 | 8     | Triple up   |
 | 9     | Triple down |
 
-## Message keys: Bitmap graph (sender 🡒 watchface)
-
-| Key   | Name            | Type   | Description |
-|-------|-----------------|--------|-------------|
-| 30    | GRAPH_BITMAP    | bytes  | *Reserved for bitmap graph data* |
-| 31-39 |                 |        | *Reserved* |
-
 ## Message keys: Raw graph (sender 🡒 watchface)
 
 | Key   | Name            | Type   | Description |
 |-------|-----------------|--------|-------------|
-| 40    | GRAPH_DATA      | bytes  | Raw graph data, see below |
-| 41    | GRAPH_HIGH_LINE | uint8  | High BG threshold (mg/dL / 2) |
-| 42    | GRAPH_LOW_LINE  | uint8  | Low BG threshold (mg/dL / 2) |
-| 43-49 |                 |        | *Reserved* |
+| 30    | GRAPH_DATA      | bytes  | Raw graph data, see below |
+| 31    | GRAPH_HIGH_LINE | uint8  | High BG threshold (mg/dL / 2) |
+| 32    | GRAPH_LOW_LINE  | uint8  | Low BG threshold (mg/dL / 2) |
+| 33-39 |                 |        | *Reserved* |
 
 Graph data can cover a single new point, the full GRAPH_HOURS history, or anything in
 between. Watchfaces merge incoming data into their graph data buffer based on
@@ -99,6 +91,14 @@ Little-endian. `bg_values` are mg/dL / 2, which fits 0–510 mg/dL (0–28 mmol/
 (≈0.1 mmol/L) resolution in one byte.
 
 Total size: `6 + 3N` bytes (3 hours at 5 min intervals = 114 bytes).
+
+## Message keys: Bitmap graph (sender 🡒 watchface)
+
+This section is reserved for bitmap graph support, as an alternative to the raw graph. The xDrip-Pebble integration has had graph support for many years, using a PNG image rendered in xDrip and sent to the watchface.
+
+| Key   | Name | Type | Description |
+|-------|------|------|-------------|
+| 40-49 |      |      | *Reserved*  |
 
 ## Implementation notes
 
