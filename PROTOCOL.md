@@ -95,15 +95,15 @@ lose the graph.
 | 2N    | offsets       | uint16[N] | Time of each point since `ref_timestamp`        | minutes   |
 | N     | bg_values     | uint8[N]  | BG of each point                                | mg/dL / 2 |
 
-Little-endian. `bg_values` are **mg/dL ÷ 2**, which fits 0–510 mg/dL (0–28 mmol/L) at 2 mg/dL
+Little-endian. `bg_values` are mg/dL / 2, which fits 0–510 mg/dL (0–28 mmol/L) at 2 mg/dL
 (≈0.1 mmol/L) resolution in one byte.
 
-Total size: `6 + 3N` bytes (3 hours at 5 min intervals → 114 bytes).
+Total size: `6 + 3N` bytes (3 hours at 5 min intervals = 114 bytes).
 
 ## Implementation notes
 
-* Use raw integer keys in watchfaces, don't declare messageKeys in package.json
-* BG timestamp should advance on new BG readings even if the BG is the same
-* Watchfaces with a BG graph can use ether a pre-rendered bitmap, or receive raw data to render itself
-* Use Clay or equivalent if your watchface needs user config
-* See e.g. [this](https://github.com/mortenfyhn/pebble-glucose-watchface) for an example watchface implementation
+* Use raw integer keys in watchfaces, don't declare messageKeys in package.json.
+* BG timestamp should advance on new BG readings even if the BG is the same.
+* Watchfaces with a BG graph can use ether a pre-rendered bitmap, or receive raw data to render itself.
+* Use Clay or equivalent if your watchface needs user config.
+* See e.g. [this](https://github.com/mortenfyhn/pebble-glucose-watchface) for an example watchface implementation.

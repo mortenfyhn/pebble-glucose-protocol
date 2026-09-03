@@ -3,7 +3,7 @@
 A small AppMessage protocol for pushing glucose data to a Pebble watchface, so that watchfaces and data
 sources (such as xDrip) can be developed independently.
 
-👉 **[Protocol spec here](PEBBLE_GLUCOSE_PROTOCOL.md)** 👈
+👉 **[Protocol spec here](PROTOCOL.md)** 👈
 
 ## Using it
 
