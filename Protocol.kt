@@ -3,7 +3,7 @@
 // Copy this file into your sender project and add your own `package` line.
 // Kotlin mirror of protocol.h.
 //
-// See PEBBLE_GLUCOSE_PROTOCOL.md for all definitions.
+// See PROTOCOL.md for all definitions.
 
 object Protocol {
     const val PROTOCOL_VERSION = 1 // draft!
@@ -14,7 +14,7 @@ object Protocol {
     const val KEY_PROTOCOL_VERSION: UInt = 0u
     const val KEY_CAPABILITIES: UInt = 1u
     const val KEY_GRAPH_HOURS: UInt = 2u
-    // const val KEY_GRAPH_BITMAP_SIZE: UInt = 3u  // reserved
+    // Keys 3-9 reserved
 
     // Message keys: Sender -> watchface (data)
     const val KEY_BG_TIMESTAMP: UInt = 10u
@@ -24,10 +24,15 @@ object Protocol {
     const val KEY_IOB_STRING: UInt = 14u
     const val KEY_STATUS_STRING: UInt = 15u
     const val KEY_SENDER_BATTERY: UInt = 16u
-    const val KEY_GRAPH_DATA: UInt = 17u
-    const val KEY_GRAPH_HIGH_LINE: UInt = 18u
-    const val KEY_GRAPH_LOW_LINE: UInt = 19u
-    // const val KEY_GRAPH_BITMAP: UInt = 20u  // reserved
+    // Keys 17-29 reserved
+
+    // Message keys: Sender -> watchface (raw graph)
+    const val KEY_GRAPH_DATA: UInt = 30u
+    const val KEY_GRAPH_HIGH_LINE: UInt = 31u
+    const val KEY_GRAPH_LOW_LINE: UInt = 32u
+    // Keys 33-39 reserved
+
+    // Keys 40-49 reserved for bitmap graph
 
     // Capability bits
     const val CAP_BG = 1 shl 0

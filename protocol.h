@@ -3,7 +3,7 @@
 // Copy this file into your watchface/sender project.
 // Port to other languages as needed.
 //
-// See PEBBLE_GLUCOSE_PROTOCOL.md for all definitions.
+// See PROTOCOL.md for all definitions.
 
 #pragma once
 
@@ -13,7 +13,7 @@
 #define KEY_PROTOCOL_VERSION 0
 #define KEY_CAPABILITIES 1
 #define KEY_GRAPH_HOURS 2
-// #define KEY_GRAPH_BITMAP_SIZE 3  // reserved
+// Keys 3-9 reserved
 
 // Message keys: Sender -> watchface (data)
 #define KEY_BG_TIMESTAMP 10
@@ -23,10 +23,15 @@
 #define KEY_IOB_STRING 14
 #define KEY_STATUS_STRING 15
 #define KEY_SENDER_BATTERY 16
-#define KEY_GRAPH_DATA 17
-#define KEY_GRAPH_HIGH_LINE 18
-#define KEY_GRAPH_LOW_LINE 19
-// #define KEY_GRAPH_BITMAP 20  // reserved
+// Keys 17-29 reserved
+
+// Message keys: Sender -> watchface (raw graph)
+#define KEY_GRAPH_DATA 30
+#define KEY_GRAPH_HIGH_LINE 31
+#define KEY_GRAPH_LOW_LINE 32
+// Keys 33-39 reserved
+
+// Keys 40-49 reserved for bitmap graph
 
 // Capability bits
 #define CAP_BG (1 << 0)
