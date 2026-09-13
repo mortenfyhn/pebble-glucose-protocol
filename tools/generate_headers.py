@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -57,6 +58,17 @@ def find_table(all_tables, columns: list[str]):
     if len(matches) != 1:
         raise ValueError(f"expected one table with columns: {columns}")
     return matches[0]
+
+
+def git_description() -> str:
+    result = subprocess.run(
+        ["git", "describe", "--always", "--tags", "--dirty"],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    return result.stdout.strip()
 
 
 def parse_spec(markdown: str):
@@ -131,11 +143,11 @@ def parse_spec(markdown: str):
     return version, sorted(keys), capabilities, trends
 
 
-def generate_c(version, keys, capabilities, trends) -> str:
+def generate_c(version, revision, keys, capabilities, trends) -> str:
     lines = [
         "// Pebble Glucose Protocol",
         "//",
-        "// Generated from PROTOCOL.md. Do not edit directly.",
+        f"// Generated from PROTOCOL.md ({revision}). Do not edit directly.",
         "",
         "#pragma once",
         "",
@@ -169,11 +181,11 @@ def generate_c(version, keys, capabilities, trends) -> str:
     return "\n".join(lines) + "\n"
 
 
-def generate_kotlin(version, keys, capabilities, trends) -> str:
+def generate_kotlin(version, revision, keys, capabilities, trends) -> str:
     lines = [
         "// Pebble Glucose Protocol",
         "//",
-        "// Generated from PROTOCOL.md. Do not edit directly.",
+        f"// Generated from PROTOCOL.md ({revision}). Do not edit directly.",
         "",
         "object Protocol {",
         f"    const val PROTOCOL_VERSION = {version}",
@@ -216,11 +228,12 @@ def main() -> int:
 
     try:
         version, keys, capabilities, trends = parse_spec(SPEC.read_text())
+        revision = git_description()
         generated = {
-            C_HEADER: generate_c(version, keys, capabilities, trends),
-            KOTLIN_HEADER: generate_kotlin(version, keys, capabilities, trends),
+            C_HEADER: generate_c(version, revision, keys, capabilities, trends),
+            KOTLIN_HEADER: generate_kotlin(version, revision, keys, capabilities, trends),
         }
-    except (OSError, ValueError) as error:
+    except (OSError, ValueError, subprocess.CalledProcessError) as error:
         print(f"error: {error}", file=sys.stderr)
         return 1
 
