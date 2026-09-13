@@ -49,7 +49,9 @@ Capability bits:
 | 14    | KEY_IOB_STRING        | string | Formatted insulin-on-board (e.g. "2.5") |
 | 15    | KEY_STATUS_STRING     | string | Any sensor/pump status text (e.g. "PUMP SUSPENDED") |
 | 16    | KEY_SENDER_BATTERY    | uint8  | Sender battery level (0–100) |
-| 17-29 |                       |        | *Reserved* |
+| 17    | KEY_STATUS_START      | uint32 | Start time of current status, can be used to display a count-up timer (Unix epoch seconds) |
+| 18    | KEY_STATUS_END        | uint32 | End time of current status, can be used to display a count-down timer (Unix epoch seconds) |
+| 19-29 |                       |        | *Reserved* |
 
 Trend arrow indices:
 
