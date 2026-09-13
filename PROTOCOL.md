@@ -22,7 +22,7 @@ Each watchface has a UUID, which the sender must target. To support arbitrary wa
 |-----|-------------------------|--------|-------------|
 | 0   | KEY_PROTOCOL_VERSION    | uint8  | Protocol version (increment for breaking changes) |
 | 1   | KEY_CAPABILITIES        | uint32 | Watchface capability bitfield, see below |
-| 2   | KEY_GRAPH_HOURS         | uint8  | Hours of graph history, set 0 to disable |
+| 2   | KEY_GRAPH_HOURS         | uint8  | Requested hours of graph history, set 0 to disable |
 | 3-9 |                         |        | *Reserved* |
 
 Watchfaces can re-send the announcement any time to request a full update from the sender.
@@ -79,10 +79,10 @@ Trend arrow indices:
 | 32    | KEY_GRAPH_LOW_LINE    | uint8  | Low BG threshold (mg/dL / 2) |
 | 33-39 |                       |        | *Reserved* |
 
-Graph data can cover a single new point, the full GRAPH_HOURS history, or anything in
-between. Watchfaces merge incoming data into their graph data buffer based on
-timestamps. The buffer should persist when you exit/launch the watchface, so you don't
-lose the graph.
+Graph data can cover a single new point, the requested history, or anything in between. A sender
+may include a margin to make sure the graph is filled on its leftmost edge. Watchfaces merge
+incoming data into their graph data buffer based on timestamps. The buffer should persist when
+you exit/launch the watchface, so you don't lose the graph.
 
 | Bytes | Field         | Type      | Description                                     | Unit      |
 |-------|---------------|-----------|-------------------------------------------------|-----------|
