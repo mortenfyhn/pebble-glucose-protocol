@@ -18,62 +18,62 @@ Each watchface has a UUID, which the sender must target. To support arbitrary wa
 
 ## Message keys: Capability announcement (watchface 🡒 sender)
 
-| Key | Name              | Type   | Description |
-|-----|-------------------|--------|-------------|
-| 0   | PROTOCOL_VERSION  | uint8  | Protocol version (increment for breaking changes) |
-| 1   | CAPABILITIES      | uint32 | Watchface capability bitfield, see below |
-| 2   | GRAPH_HOURS       | uint8  | Hours of graph history, set 0 to disable |
-| 3-9 |                   |        | *Reserved* |
+| Key | Name                    | Type   | Description |
+|-----|-------------------------|--------|-------------|
+| 0   | KEY_PROTOCOL_VERSION    | uint8  | Protocol version (increment for breaking changes) |
+| 1   | KEY_CAPABILITIES        | uint32 | Watchface capability bitfield, see below |
+| 2   | KEY_GRAPH_HOURS         | uint8  | Hours of graph history, set 0 to disable |
+| 3-9 |                         |        | *Reserved* |
 
 Watchfaces can re-send the announcement any time to request a full update from the sender.
 
 Capability bits:
 
-| Bit | Mask   | Description |
-|-----|--------|-------------|
-| 0   | `0x01` | Timestamped BG value |
-| 1   | `0x02` | Trend arrow |
-| 2   | `0x04` | Delta |
-| 3   | `0x08` | IOB |
-| 4   | `0x10` | Status line |
-| 5   | `0x20` | Sender battery |
+| Name               | Mask   | Description |
+|--------------------|--------|-------------|
+| CAP_BG             | `0x01` | Timestamped BG value |
+| CAP_TREND_ARROW    | `0x02` | Trend arrow |
+| CAP_DELTA          | `0x04` | Delta |
+| CAP_IOB            | `0x08` | IOB |
+| CAP_STATUS         | `0x10` | Status line |
+| CAP_SENDER_BATTERY | `0x20` | Sender battery |
 
 ## Message keys: Main data (sender 🡒 watchface)
 
-| Key   | Name            | Type   | Description |
-|-------|-----------------|--------|-------------|
-| 10    | BG_TIMESTAMP    | uint32 | BG reading timestamp (Unix epoch seconds) |
-| 11    | BG_STRING       | string | Formatted BG value in sender's units (e.g. "5.7" or "103") |
-| 12    | DELTA_STRING    | string | Formatted BG delta (e.g. "-0.3" or "-5.6") |
-| 13    | TREND_ARROW     | uint8  | Trend arrow index (see below) |
-| 14    | IOB_STRING      | string | Formatted insulin-on-board (e.g. "2.5") |
-| 15    | STATUS_STRING   | string | Any sensor/pump status text (e.g. "PUMP SUSPENDED") |
-| 16    | SENDER_BATTERY  | uint8  | Sender battery level (0–100) |
-| 17-29 |                 |        | *Reserved* |
+| Key   | Name                  | Type   | Description |
+|-------|-----------------------|--------|-------------|
+| 10    | KEY_BG_TIMESTAMP      | uint32 | BG reading timestamp (Unix epoch seconds) |
+| 11    | KEY_BG_STRING         | string | Formatted BG value in sender's units (e.g. "5.7" or "103") |
+| 12    | KEY_DELTA_STRING      | string | Formatted BG delta (e.g. "-0.3" or "-5.6") |
+| 13    | KEY_TREND_ARROW       | uint8  | Trend arrow index (see below) |
+| 14    | KEY_IOB_STRING        | string | Formatted insulin-on-board (e.g. "2.5") |
+| 15    | KEY_STATUS_STRING     | string | Any sensor/pump status text (e.g. "PUMP SUSPENDED") |
+| 16    | KEY_SENDER_BATTERY    | uint8  | Sender battery level (0–100) |
+| 17-29 |                       |        | *Reserved* |
 
 Trend arrow indices:
 
-| Index | Description |
-|-------|-------------|
-| 0     | Unknown     |
-| 1     | Flat        |
-| 2     | Slant up    |
-| 3     | Slant down  |
-| 4     | Up          |
-| 5     | Down        |
-| 6     | Double up   |
-| 7     | Double down |
-| 8     | Triple up   |
-| 9     | Triple down |
+| Name              | Index | Description |
+|-------------------|-------|-------------|
+| TREND_UNKNOWN     | 0     | Unknown     |
+| TREND_FLAT        | 1     | Flat        |
+| TREND_SLANT_UP    | 2     | Slant up    |
+| TREND_SLANT_DOWN  | 3     | Slant down  |
+| TREND_UP          | 4     | Up          |
+| TREND_DOWN        | 5     | Down        |
+| TREND_DOUBLE_UP   | 6     | Double up   |
+| TREND_DOUBLE_DOWN | 7     | Double down |
+| TREND_TRIPLE_UP   | 8     | Triple up   |
+| TREND_TRIPLE_DOWN | 9     | Triple down |
 
 ## Message keys: Raw graph (sender 🡒 watchface)
 
-| Key   | Name            | Type   | Description |
-|-------|-----------------|--------|-------------|
-| 30    | GRAPH_DATA      | bytes  | Raw graph data, see below |
-| 31    | GRAPH_HIGH_LINE | uint8  | High BG threshold (mg/dL / 2) |
-| 32    | GRAPH_LOW_LINE  | uint8  | Low BG threshold (mg/dL / 2) |
-| 33-39 |                 |        | *Reserved* |
+| Key   | Name                  | Type   | Description |
+|-------|-----------------------|--------|-------------|
+| 30    | KEY_GRAPH_DATA        | bytes  | Raw graph data, see below |
+| 31    | KEY_GRAPH_HIGH_LINE   | uint8  | High BG threshold (mg/dL / 2) |
+| 32    | KEY_GRAPH_LOW_LINE    | uint8  | Low BG threshold (mg/dL / 2) |
+| 33-39 |                       |        | *Reserved* |
 
 Graph data can cover a single new point, the full GRAPH_HOURS history, or anything in
 between. Watchfaces merge incoming data into their graph data buffer based on
