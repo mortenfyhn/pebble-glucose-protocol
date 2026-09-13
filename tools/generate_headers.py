@@ -99,7 +99,7 @@ def parse_spec(markdown: str):
             raise ValueError(f"message name is not a KEY_ identifier: {name}")
         names.add(name)
         values.add(key)
-        keys.append((key, name, value_type))
+        keys.append((key, name, value_type, row[3]))
 
     capability_rows = find_table(all_tables, ["Name", "Mask", "Description"])
     capabilities = []
@@ -121,7 +121,7 @@ def parse_spec(markdown: str):
             raise ValueError(f"duplicate capability name: {name}")
         capability_names.add(name)
         capability_masks.add(mask)
-        capabilities.append((name, mask))
+        capabilities.append((name, mask, row[2]))
 
     trend_rows = find_table(all_tables, ["Name", "Index", "Description"])
     trends = []
@@ -138,7 +138,7 @@ def parse_spec(markdown: str):
             raise ValueError(f"duplicate trend name or index: {name}, {index}")
         trend_names.add(name)
         trend_indices.add(index)
-        trends.append((name, index))
+        trends.append((name, index, row[2]))
 
     return version, sorted(keys), capabilities, trends
 
@@ -155,19 +155,19 @@ def generate_c(version, revision, keys, capabilities, trends) -> str:
         "",
         "// Message keys: Watchface -> sender (capability announcement)",
     ]
-    lines += [f"#define {name} {key}" for key, name, _ in keys if key < 10]
+    lines += [f"#define {name} {key} // {description}" for key, name, _, description in keys if key < 10]
     lines += [
         "// Keys 3-9 reserved",
         "",
         "// Message keys: Sender -> watchface (data)",
     ]
-    lines += [f"#define {name} {key}" for key, name, _ in keys if 10 <= key < 30]
+    lines += [f"#define {name} {key} // {description}" for key, name, _, description in keys if 10 <= key < 30]
     lines += [
         "// Keys 19-29 reserved",
         "",
         "// Message keys: Sender -> watchface (raw graph)",
     ]
-    lines += [f"#define {name} {key}" for key, name, _ in keys if 30 <= key < 40]
+    lines += [f"#define {name} {key} // {description}" for key, name, _, description in keys if 30 <= key < 40]
     lines += [
         "// Keys 33-39 reserved",
         "",
@@ -175,9 +175,9 @@ def generate_c(version, revision, keys, capabilities, trends) -> str:
         "",
         "// Capability bits",
     ]
-    lines += [f"#define {name} 0x{mask:02x}" for name, mask in capabilities]
+    lines += [f"#define {name} 0x{mask:02x} // {description}" for name, mask, description in capabilities]
     lines += ["", "// Trend arrow indices"]
-    lines += [f"#define {name} {index}" for name, index in trends]
+    lines += [f"#define {name} {index} // {description}" for name, index, description in trends]
     return "\n".join(lines) + "\n"
 
 
@@ -194,19 +194,19 @@ def generate_kotlin(version, revision, keys, capabilities, trends) -> str:
         "",
         "    // Message keys: Watchface -> sender (capability announcement)",
     ]
-    lines += [f"    const val {name}: UInt = {key}u" for key, name, _ in keys if key < 10]
+    lines += [f"    const val {name}: UInt = {key}u // {description}" for key, name, _, description in keys if key < 10]
     lines += [
         "    // Keys 3-9 reserved",
         "",
         "    // Message keys: Sender -> watchface (data)",
     ]
-    lines += [f"    const val {name}: UInt = {key}u" for key, name, _ in keys if 10 <= key < 30]
+    lines += [f"    const val {name}: UInt = {key}u // {description}" for key, name, _, description in keys if 10 <= key < 30]
     lines += [
         "    // Keys 19-29 reserved",
         "",
         "    // Message keys: Sender -> watchface (raw graph)",
     ]
-    lines += [f"    const val {name}: UInt = {key}u" for key, name, _ in keys if 30 <= key < 40]
+    lines += [f"    const val {name}: UInt = {key}u // {description}" for key, name, _, description in keys if 30 <= key < 40]
     lines += [
         "    // Keys 33-39 reserved",
         "",
@@ -214,9 +214,9 @@ def generate_kotlin(version, revision, keys, capabilities, trends) -> str:
         "",
         "    // Capability bits",
     ]
-    lines += [f"    const val {name} = 0x{mask:02x}" for name, mask in capabilities]
+    lines += [f"    const val {name} = 0x{mask:02x} // {description}" for name, mask, description in capabilities]
     lines += ["", "    // Trend arrow indices"]
-    lines += [f"    const val {name} = {index}" for name, index in trends]
+    lines += [f"    const val {name} = {index} // {description}" for name, index, description in trends]
     lines += ["}"]
     return "\n".join(lines) + "\n"
 
