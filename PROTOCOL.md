@@ -34,7 +34,7 @@ Capability bits:
 | CAP_BG             | `0x01` | Timestamped BG value |
 | CAP_TREND_ARROW    | `0x02` | Trend arrow |
 | CAP_DELTA          | `0x04` | Delta |
-| CAP_IOB            | `0x08` | IOB |
+| CAP_IOB            | `0x08` | Insulin-on-board |
 | CAP_STATUS         | `0x10` | Status line |
 | CAP_SENDER_BATTERY | `0x20` | Sender battery |
 
