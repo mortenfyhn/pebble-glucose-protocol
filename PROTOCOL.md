@@ -53,6 +53,8 @@ Capability bits:
 | 18    | KEY_STATUS_END        | uint32 | End time of current status, can be used to display a count-down timer (Unix epoch seconds) |
 | 19-29 |                       |        | *Reserved* |
 
+A status should never have more than one timer (KEY_STATUS_START or KEY_STATUS_END or neither).
+
 Trend arrow indices:
 
 | Name              | Index | Description |
