@@ -1,12 +1,9 @@
 // Pebble Glucose Protocol
 //
-// Copy this file into your sender project and add your own `package` line.
-// Kotlin mirror of protocol.h.
-//
-// See PROTOCOL.md for all definitions.
+// Generated from PROTOCOL.md. Do not edit directly.
 
 object Protocol {
-    const val PROTOCOL_VERSION = 1 // draft!
+    const val PROTOCOL_VERSION = 1
 
     // Keys are UInt because that is what PebbleKit Android 2 dictionaries take.
 
@@ -24,7 +21,9 @@ object Protocol {
     const val KEY_IOB_STRING: UInt = 14u
     const val KEY_STATUS_STRING: UInt = 15u
     const val KEY_SENDER_BATTERY: UInt = 16u
-    // Keys 17-29 reserved
+    const val KEY_STATUS_START: UInt = 17u
+    const val KEY_STATUS_END: UInt = 18u
+    // Keys 19-29 reserved
 
     // Message keys: Sender -> watchface (raw graph)
     const val KEY_GRAPH_DATA: UInt = 30u
@@ -35,12 +34,12 @@ object Protocol {
     // Keys 40-49 reserved for bitmap graph
 
     // Capability bits
-    const val CAP_BG = 1 shl 0
-    const val CAP_TREND_ARROW = 1 shl 1
-    const val CAP_DELTA = 1 shl 2
-    const val CAP_IOB = 1 shl 3
-    const val CAP_STATUS = 1 shl 4
-    const val CAP_SENDER_BATTERY = 1 shl 5
+    const val CAP_BG = 0x01
+    const val CAP_TREND_ARROW = 0x02
+    const val CAP_DELTA = 0x04
+    const val CAP_IOB = 0x08
+    const val CAP_STATUS = 0x10
+    const val CAP_SENDER_BATTERY = 0x20
 
     // Trend arrow indices
     const val TREND_UNKNOWN = 0

@@ -15,6 +15,16 @@ Copy any of these into your project:
 * [`Protocol.kt`](Protocol.kt) for Kotlin projects
 * or port it to your language
 
+The Markdown specification is the source of truth. Regenerate the C and Kotlin headers after
+changing it:
+
+```sh
+python3 tools/generate_headers.py
+```
+
+Use `python3 tools/generate_headers.py --check` to verify that the generated headers are up to date.
+Do not edit `protocol.h` or `Protocol.kt` directly.
+
 ## Status
 
 This is a v1 draft. I have three implementations in daily use:
