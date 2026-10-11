@@ -53,7 +53,8 @@ Capability bits:
 | 18    | KEY_STATUS_END        | uint32 | End time of current status, can be used to display a count-down timer (Unix epoch seconds) |
 | 19-29 |                       |        | *Reserved* |
 
-A status should never have more than one timer (KEY_STATUS_START or KEY_STATUS_END or neither).
+A status should never have more than one timer (KEY_STATUS_START, KEY_STATUS_END, or neither).
+The status string should be kept short enough to fit on the watchface (approx. 16 chars in Gothic 18 on 144 pixels).
 
 Trend arrow indices:
 
